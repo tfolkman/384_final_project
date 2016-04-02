@@ -1,0 +1,34 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{cite}
+\usepackage[colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue,
+            citecolor = blue,
+            anchorcolor = blue]{hyperref}
+\usepackage[section]{placeins}
+\usepackage{float}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\author{Tyler Folkman and Devesh Sahu}
+\title{CS 384G Computer Graphics, Spring 2016 \\ Project Proposal}
+\begin{document}
+\maketitle
+
+For our project, we plan on implementing a learning based method for processing grayscale photos. A recent method developed by Zhang, Isola, and Efros~\cite{zhang2016colorful} demonstrates a fully automatic method that colors a grayscale image with plausible colors. This is accomplished by leveraging convolutional neural networks to learn from data plausible ways to color an image. Our plan is to re-create this method and develop an app that allows users to take or upload an image are receive back the colored version. This project idea most resembles the image processing we did in the Impressionist homework.
+
+From this project we hope to gain a better understanding of how learning based methods are used in computer graphics. Machine learning has been used in numerous graphics applications~\cite{grochow2004style}~\cite{barbivc2004segmenting}~\cite{matusik2003data} and convolutional neural networks have been making large gains in the computer vision area. We believe this project will help us see how these type of image networks can be leveraged in the field of computer graphics. 
+
+We intend to produce an android application as our result that will perform this automatic coloring of grayscale images. We plan on working on most of the project together (pair programming).
+
+
+
+
+\bibliography{mybib}
+\bibliographystyle{plain}
+\end{document}
