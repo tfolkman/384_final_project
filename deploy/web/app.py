@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, redirect, url_for
 from werkzeug import secure_filename
 from utils import colorize
+from flask import send_file
 import scipy.misc
 
 UPLOAD_FOLDER = './tmp/'
@@ -22,7 +23,7 @@ def index():
             file.save(UPLOAD_FOLDER + "bw.jpg")
             color_photo = colorize.run_color(UPLOAD_FOLDER + "bw.jpg")
             scipy.misc.imsave(UPLOAD_FOLDER + "color.jpg", color_photo)
-            return redirect(url_for('index'))
+	    return send_file(UPLOAD_FOLDER + "color.jpg", mimetype='image/jpg')
     return """
     <!doctype html>
     <title>Upload new File</title>
