@@ -3,7 +3,7 @@ web:
   build: ./web
   expose:
     - "8000"
-  command: /usr/local/bin/gunicorn -w 2 -b :8000 app:app
+  command: /usr/local/bin/gunicorn --workers=3 --worker-class=tornado --timeout=90 --graceful-timeout=10 --log-level=DEBUG  -b :8000 app:app
 
 nginx:
   restart: always

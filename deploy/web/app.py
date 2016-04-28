@@ -18,11 +18,19 @@ def allowed_file(filename):
 @app.route("/", methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+	f = open(UPLOAD_FOLDER + "logs.txt", "w")
+	f.write("rcvd file\n")
         file = request.files['file']
         if file and allowed_file(file.filename):
             file.save(UPLOAD_FOLDER + "bw.jpg")
+            f.write("saved file\n")
+	    f.close()
             color_photo = colorize.run_color(UPLOAD_FOLDER + "bw.jpg")
+	    f = open(UPLOAD_FOLDER + "logs.txt", "a")
+            f.write("color file\n")
             scipy.misc.imsave(UPLOAD_FOLDER + "color.jpg", color_photo)
+            f.write("saved color file\n")
+	    f.close()
 	    return send_file(UPLOAD_FOLDER + "color.jpg", mimetype='image/jpg')
     return """
     <!doctype html>
@@ -36,4 +44,4 @@ def index():
     """ % "<br>".join(os.listdir(app.config['UPLOAD_FOLDER'],))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
