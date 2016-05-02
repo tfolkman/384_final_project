@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Colorize</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <link href="/static/css/app.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>Colorize a Black and White Photo</h1>
+                <p class="line"></p>
+                <form name="bwForm" id="bwForm" action="/process_photo/" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="exampleInputFile">Upload black and white photo</label>
+                        <input type="file" id="bwPhoto" name="bwPhoto">
+                    </div>
+                    <button id="upload-file-btn" type="submit" class="btn btn-default">Submit</button>
+                </form>
+            </div>
+        </div>
+        <p class="line"></p>
+        <div class="row">
+            <div class="col-sm-5">
+                <img id="bw-image" src="static/images/bw.jpg" alt="loading" class="img-responsive center-block" style="max-height:420px;display:none;">
+            </div>
+            <div class="col-sm-5">
+                <img id="color-image" src="static/images/color.jpg" alt="loading" class="img-responsive center-block" style="max-height:420px;display: none;">
+            </div>
+        </div>
+    </div>
+    <!-- SCRIPTS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+    $("#bwForm").submit(function(e) {
+        d = new Date();
+        $(document).ajaxStart(function() {
+            $("#bw-image").attr("src", "static/images/load.gif" + '?' + new Date().getTime());
+            $("#color-image").attr("src", "static/images/load.gif");
+            $("#bw-image").show();
+        });
+        $(document).ajaxStop(function() {
+            $("#bw-image").attr("src", "static/images/bw.jpg" + '?' + new Date().getTime());
+            $("#color-image").attr("src", "static/images/color.jpg?" + new Date().getTime());
+            $("#color-image").show();
+        });
+
+        var formObj = $(this);
+        var formURL = formObj.attr("action");
+        var formData = new FormData(this);
+        $.ajax({
+            url: formURL,
+            type: 'POST',
+            data: formData,
+            mimeType: "multipart/form-data",
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data, textStatus, jqXHR) {
+                console.log("victory!");
+            },
+            error: function(jqXHR, textStatus, errorThrown) {}
+        });
+        e.preventDefault(); //Prevent Default action. 
+    });
+    </script>
+</body>
+
+</html>
