@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Colorize Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <link href="/static/css/app.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <h1>Colorful Image Colorization</h1>
+                <h3>CS 384G Final Project</h3>
+                <h3>Tyler Folkman and Devesh Sahu</h3>
+                <p class="line"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>Description</h2>
+                <p>Image colorization is the task of taking a black and white photo and automatically "hallucinating" a plausible color version of the photo. A fully automatic approach to this process was recently developed by Zhang et al. To accomplish this, the authors pose the problem as a classification task and use a convolutional neural network to learn a distribution of colors over the pixels of a grayscale photo. This process takes place in the Lab colorspace, so given the L of an image, it predicts the a and b color channels.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>Background</h2>
+                <h4>Convolutional Layer</h4>
+                <p> A convolutional layer is a filter that slides over the image. The size of the patch is defined in advanced and the network learns the weights for the filter. A convolutional layer also has depth which is the number of such filters that is passed over the image. The network developed by Zhang et al. has 8 such convolutional layers as seen in the image below. </p>
+                <h4>Class Rebalancing</h4>
+                <p> Since the distribution of a, b color values is biased towards low values due to the appearance of backgrounds, desaturated images are possible. To account for this, the loss at each pixel is re-weighted based on pixel color rarity. </p>
+                <h4>Objective Function</h4>
+                <p> A multinomial cross entropy loss function is utilized: $H(p,q) = - \sum_x p(x) \log q(x)$. To accomplish this, the ab output space is quantized into bins with a grid size of 10. To go from the class probabilities to point estimates, a simulated annealing technique is used that takes a temperature T and re-adjusts the distribution: $f(Z,T) = \frac{exp(Z/T)}{\sum_q exp(Z_q/T)}$. Lowering the value of T produces a more strongly peaked distribution. A value of 1/6 is used.</p>
+                <h4>Training</h4> The network is initialized from VGG convolutional layers with some modifications. There is also a deep supervision on the last three convolutional layers. The idea behind deep supervision is that by providing supervision within the net we can more rapidly approach good features. Backpropagation is used to further fine-tune the network on a million colored photos. 
+                <img id="network" src="/static/images/net_diagram.png" alt="net" class="img-responsive center-block" style="max-height:420px;">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>Implementation</h2>
+                <p> To implement the colorization network described above, we leveraged Caffe and Python. Caffe is a deep learning framework that allowed us to replicate the network using a prototxt file. This file describes the network in a text-based way. Caffe reads this file and automatically performs the necessary computations to perform backpropagation for training forward pass for testing. We initialized our network with the weights learned by Zhang et al.</p>
+                <p> Python was used to pass an arbitrary black and white image to the network and then retrieve the produced color image. Also, we leveraged Python to develop a website to host our colorization application. This site can be found <a href="http://192.168.99.100/">here.</a></p>
+                <p> Lastly, an Android application was developed...</p>
+                <p> All of the code can be found <a href="https://github.com/tfolkman/384_final_project">here.</a></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>Artifacts</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>References</h2>
+                <ol type="I">
+                    <li>Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. "Imagenet classification with deep convolutional neural networks." Advances in neural information processing systems. 2012.</li>
+                    <li>Simonyan, K., Zisserman, A.: Very deep convolutional networks for large-scale image recognition. arXiv preprint arXiv:1409.1556 (2014)</li>
+                    <li>Zhang, Richard, Phillip Isola, and Alexei A. Efros. "Colorful Image Colorization." arXiv preprint arXiv:1603.08511 (2016).</li>
+                    <li>Lee, Chen-Yu, et al. "Deeply-supervised nets." arXiv preprint arXiv:1409.5185 (2014).</li>
+                    <li>Jia, Yangqing, et al. "Caffe: Convolutional architecture for fast feature embedding." Proceedings of the ACM International Conference on Multimedia. ACM, 2014.</li >
+                </ol>
+            </div>
+        </div>
+    </div>
+    <!-- SCRIPTS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]} });
+    </script>
+</body>
+
+</html>
