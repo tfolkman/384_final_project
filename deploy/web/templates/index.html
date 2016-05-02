@@ -43,8 +43,8 @@
     $("#bwForm").submit(function(e) {
         d = new Date();
         $(document).ajaxStart(function() {
-            $("#bw-image").attr("src", "static/images/load.gif" + '?' + new Date().getTime());
-            $("#color-image").attr("src", "static/images/load.gif");
+            $("#color-image").hide();
+            $("#bw-image").attr("src", "static/images/load.gif");
             $("#bw-image").show();
         });
         $(document).ajaxStop(function() {
@@ -65,7 +65,7 @@
             cache: false,
             processData: false,
             success: function(data, textStatus, jqXHR) {
-                console.log("victory!");
+                console.log("colorized successful");
             },
             error: function(jqXHR, textStatus, errorThrown) {}
         });

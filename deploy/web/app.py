@@ -25,7 +25,6 @@ def process_photo():
         file.save(UPLOAD_FOLDER + "/bw.jpg")
         color_photo = colorize.run_color(UPLOAD_FOLDER + "/bw.jpg")
         scipy.misc.imsave(UPLOAD_FOLDER + "/color.jpg", color_photo)
-        #return json.dumps("okay")
         return send_file(UPLOAD_FOLDER + "/color.jpg", mimetype='image/jpg')
 
 
