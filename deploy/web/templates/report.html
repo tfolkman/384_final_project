@@ -31,20 +31,20 @@
             <div class="col-sm-12">
                 <h2>Background</h2>
                 <h4>Convolutional Layer</h4>
-                <p> A convolutional layer is a filter that slides over the image. The size of the patch is defined in advanced and the network learns the weights for the filter. A convolutional layer also has depth which is the number of such filters that is passed over the image. The network developed by Zhang et al. has 8 such convolutional layers as seen in the image below. </p>
+                <p> A convolutional layer is a filter that slides over the image. The size of the patch is defined in advanced and the network learns the weights for the filter. A convolutional layer also has depth which is the number of such filters that is passed over the image. The network developed by Zhang et al. has 8 such convolutional layers as seen in the image below. The architecture below shows the depth of each convolutional layer as well as the resulting image size. The resulting image size is determined by the stride of the convolution.</p>
+                <h4>Objective Function</h4>
+                <p> A multinomial cross entropy loss function is utilized: $H(p,q) = - \sum_x p(x) \log q(x)$. To accomplish this, the ab output space is quantized into bins with a grid size of 10 which results in 313 bins. A ground truth pixel is mapped to a bin using the 10 nearest neighbors and weighting them proportionally to their distance with a Gaussian kernel.  Thus, for each pixel a distribution across the ab grid space is learned. To go from the class probabilities to point estimates, a simulated annealing technique is used that takes a temperature T and re-adjusts the distribution. After this re-adjustment, the expected value is taken: $H(Z_{h,w}) = E(f_T(logZ_{h,w})), f_T(z) = \frac{exp(z/T)}{\sum_q exp(z_q/T)}$. Lowering the value of T produces a more strongly peaked distribution and T = 1 leaves the distribution unchanged. A value of 1/6 is used.</p>
                 <h4>Class Rebalancing</h4>
                 <p> Since the distribution of a, b color values is biased towards low values due to the appearance of backgrounds, desaturated images are possible. To account for this, the loss at each pixel is re-weighted based on pixel color rarity. </p>
-                <h4>Objective Function</h4>
-                <p> A multinomial cross entropy loss function is utilized: $H(p,q) = - \sum_x p(x) \log q(x)$. To accomplish this, the ab output space is quantized into bins with a grid size of 10. To go from the class probabilities to point estimates, a simulated annealing technique is used that takes a temperature T and re-adjusts the distribution: $f(Z,T) = \frac{exp(Z/T)}{\sum_q exp(Z_q/T)}$. Lowering the value of T produces a more strongly peaked distribution. A value of 1/6 is used.</p>
-                <h4>Training</h4> The network is initialized from VGG convolutional layers with some modifications. There is also a deep supervision on the last three convolutional layers. The idea behind deep supervision is that by providing supervision within the net we can more rapidly approach good features. Backpropagation is used to further fine-tune the network on a million colored photos. 
+                <h4>Training</h4> The network is initialized from VGG net convolutional layers with some modifications. A full list of the modifications can be found in the paper. There is also a deep supervision on the last three convolutional layers. The idea behind deep supervision is that by providing supervision within the net we can more rapidly approach good features. Backpropagation is used to further fine-tune the network on a million colored photos. 
                 <img id="network" src="/static/images/net_diagram.png" alt="net" class="img-responsive center-block" style="max-height:420px;">
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
                 <h2>Implementation</h2>
-                <p> To implement the colorization network described above, we leveraged Caffe and Python. Caffe is a deep learning framework that allowed us to replicate the network using a prototxt file. This file describes the network in a text-based way. Caffe reads this file and automatically performs the necessary computations to perform backpropagation for training forward pass for testing. We initialized our network with the weights learned by Zhang et al.</p>
-                <p> Python was used to pass an arbitrary black and white image to the network and then retrieve the produced color image. Also, we leveraged Python to develop a website to host our colorization application. This site can be found <a href="http://192.168.99.100/">here.</a></p>
+                <p> To implement the colorization network described above, we leveraged Caffe and Python. Caffe is a deep learning framework that allowed us to replicate the network using a prototxt file. This file describes the network in a text-based way. Caffe reads this file and automatically performs the necessary computations to perform backpropagation for training and the forward pass for testing. We initialized our network with the weights learned by Zhang et al.</p>
+                <p> Python was used to pass an arbitrary black and white image to the network and then retrieve the produced colorized image. This required converting the image to the Lab colorspace, extracting the L value, re-sizing the image to the appropriate size for the network, and upsampling the colorized version to match the original dimensions. Also, we leveraged Python to develop a website to host our colorization application. This site can be found <a href="http://192.168.99.100/">here.</a></p>
                 <p> Lastly, an Android application was developed...</p>
                 <p> All of the code can be found <a href="https://github.com/tfolkman/384_final_project">here.</a></p>
             </div>
@@ -63,6 +63,7 @@
                     <li>Zhang, Richard, Phillip Isola, and Alexei A. Efros. "Colorful Image Colorization." arXiv preprint arXiv:1603.08511 (2016).</li>
                     <li>Lee, Chen-Yu, et al. "Deeply-supervised nets." arXiv preprint arXiv:1409.5185 (2014).</li>
                     <li>Jia, Yangqing, et al. "Caffe: Convolutional architecture for fast feature embedding." Proceedings of the ACM International Conference on Multimedia. ACM, 2014.</li >
+                    <li>Hecht-Nielsen, Robert. "Theory of the backpropagation neural network." Neural Networks, 1989. IJCNN., International Joint Conference on. IEEE, 1989.</li>
                 </ol>
             </div>
         </div>
