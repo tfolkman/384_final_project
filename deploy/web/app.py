@@ -20,6 +20,9 @@ def allowed_file(filename):
 
 @app.route("/process_photo/", methods=['POST'])
 def process_photo():
+    request.get_data()
+    with open('./static/request.txt', 'w') as outfile:
+        outfile.write(request.data)
     file = request.files['bwPhoto']
     if file and allowed_file(file.filename):
         file.save(UPLOAD_FOLDER + "/bw.jpg")
