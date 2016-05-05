@@ -1,47 +1,30 @@
 package sahu.devesh.cam2;
 
-import android.app.DownloadManager;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.renderscript.ScriptGroup;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
-
-import com.android.internal.http.multipart.MultipartEntity;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.ByteArrayBuffer;
 
 import java.io.BufferedInputStream;
-import java.io.DataOutput;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -49,11 +32,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -64,19 +46,17 @@ public class MainActivity extends AppCompatActivity {
     private Uri fileUri = null;
 
     private Bitmap bitmap = null;
-    private Bitmap outputBitmap = null;
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int PICK_IMAGE = 2;
-    public static final int UPLOAD_IMAGE = 3;
 
     // Tracks user action (Capture or Pick)
     public static int choice = 0;
 
     // Server Location
-    public String server = "http://104.236.112.86/";
+    public String server = "http://104.236.112.86/process_photo/";
 
     // Absolute path of the source Image
     public String sourceImagePath;
@@ -148,6 +128,13 @@ public class MainActivity extends AppCompatActivity {
 
         File image = new File(path);
 
+        if (image == null){
+            Log.d("preview", "image is empty!");
+            return;
+        }
+        else {
+            Log.d("preview", "Displaying image at " + path);
+        }
         Bitmap temp = BitmapFactory.decodeFile(image.getAbsolutePath());
         temp = Bitmap.createScaledBitmap(temp,1024, 768,true);
         preview.setImageBitmap(temp);
@@ -195,48 +182,90 @@ public class MainActivity extends AppCompatActivity {
 
             this.imageView = params[0];
 
-            File file = new File(sourceImagePath);
-
-            try {
-                HttpClient httpClient = new DefaultHttpClient();
-
-                HttpPost httpPost = new HttpPost(server);
-
-                InputStreamEntity reqEntity = new InputStreamEntity(
-                        new FileInputStream(file), -1);
-                reqEntity.setContentType("binary/octet-stream");
-                reqEntity.setChunked(true);
-                httpPost.setEntity(reqEntity);
-                HttpResponse response = httpClient.execute(httpPost);
-
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                         + "/CameraApp/" + "Col_IMG_" + timeStamp + ".jpg" ;
 
-                try {
-                    HttpEntity entity = response.getEntity();
-                    if (entity != null){
-                        InputStream inputStream = entity.getContent();
-                        FileOutputStream outputStream = new FileOutputStream(path);
-                        int bufferSize = 1024;
-                        byte[] buffer = new byte[bufferSize];
-                        int len = 0;
-                        while ((len = inputStream.read(buffer)) != -1){
-                            outputStream.write(buffer, 0, len);
-                        }
-                        outputStream.close();
-                    }
-                    destinationImagePath = path;
+            Bitmap bitmap = BitmapFactory.decodeFile(sourceImagePath);
 
-                } catch (Exception e){
-                    e.printStackTrace();
-                    Log.d("response ", "Problems with recieved response");
+            String attachmentName = "bwPhoto";
+            String attachmentFileName = "bwPhoto.bmp";
+            String crlf = "\r\n";
+            String twoHyphens = "--";
+            String boundary =  "*****";
+
+
+            try {
+                File sourceFile = new File(sourceImagePath);
+                FileInputStream fileInputStream = new FileInputStream(sourceFile);
+
+                HttpURLConnection httpURLConnection = null;
+                URL url = new URL(server);
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setUseCaches(false);
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setDoInput(true);
+
+                httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
+                httpURLConnection.setRequestProperty("Cache-Control", "no-cache");
+                httpURLConnection.setRequestProperty(
+                        "Content-Type", "multipart/form-data;boundary=" + boundary);
+
+                DataOutputStream request = new DataOutputStream(httpURLConnection.getOutputStream());
+                request.writeBytes(twoHyphens + boundary + crlf);
+                request.writeBytes("Content-Disposition: form-data; name=\"" +
+                        attachmentName + "\";filename=\"" +
+                        attachmentFileName + "\"" + crlf);
+                request.writeBytes(crlf);
+
+                int bytesRead, bytesAvailable, bufferSize;
+                byte[] buffer;
+                int maxBufferSize = 1 * 1024 * 1024;
+
+                bytesAvailable = fileInputStream.available();
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                buffer = new byte[bufferSize];
+                bytesRead  = fileInputStream.read(buffer, 0, bufferSize);
+
+                while (bytesRead > 0 ){
+                    request.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
                 }
 
-               // outputBitmap = BitmapFactory.decodeStream(path);
+                request.writeBytes(crlf);
+                request.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
 
+                request.flush();
+                request.close();
 
-               /* try {
+                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
+
+                    InputStream responseStream = new BufferedInputStream(httpURLConnection.getInputStream());
+
+                    BufferedInputStream bis = new BufferedInputStream(responseStream, 8190);
+
+                    ByteArrayOutputStream nbuffer = new ByteArrayOutputStream();
+
+                    byte[] imageData = new byte[50];
+                    int current = 0;
+
+                    while((current = bis.read(imageData,0,imageData.length)) != -1){
+                        nbuffer.write(imageData,0,current);
+                    }
+
+                    /*String path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                            + "/CameraApp/" + "Col_IMG_temp"+ ".jpg" ;*/
+                    File newfile = new File(path);
+
+                    FileOutputStream fos = new FileOutputStream(newfile);
+                    fos.write(nbuffer.toByteArray());
+                    fos.close();
+
+                   /*Bitmap outputBitmap = BitmapFactory.decodeFile();
+
                     OutputStream fOut = null;
                     File outFile = new File (path);
                     fOut = new FileOutputStream(outFile);
@@ -246,68 +275,48 @@ public class MainActivity extends AppCompatActivity {
                     fOut.close();
 
                     MediaStore.Images.Media.insertImage(getContentResolver(), outFile.getAbsolutePath(),outFile.getName(),outFile.getName());
-
+                    */
                     destinationImagePath = path;
 
-                }catch (Exception e) {
-                    e.printStackTrace();
-                    Log.d("outstream ", "Could not save output file");
-                }*/
+                }
 
-            } catch (Exception e){
+                else {
+                    String serverResponseMessage = httpURLConnection.getResponseMessage();
 
-                e.printStackTrace();
 
-                Log.d("response","connectivity failed");
+
+                    Log.i("uploadFile", "HTTP Response is : "+ serverResponseMessage);
+
+                    Log.d("HttpURLconnection","connection not OK");
+                }
+
+                httpURLConnection.disconnect();
+
+
+            }catch (Exception e){
+
+                Log.d("HttpURLconnection", "Connection failure");
+
             }
-
-            //resetImageforView(destinationImagePath);
             return "True";
         }
 
-        protected void postExecute(){
-            imageView.setImageBitmap(outputBitmap);
-        }
-    }
+        protected void onPostExecute(String result){
+            File image = new File(destinationImagePath);
 
-    /* Put your comment here
-
-    private void downloadImage() throws IOException{
-        InputStream in = null;
-        int response = -1;
-
-        URL url = new URL(server);
-        URLConnection conn = url.openConnection();
-
-        if (! (conn instanceof HttpURLConnection)) {
-            throw new IOException("Not an HTTP connection");
-        }
-
-        try{
-            HttpURLConnection httpConn = (HttpURLConnection) conn;
-            httpConn.setAllowUserInteraction(false);
-            httpConn.setRequestMethod("GET");
-            httpConn.connect();
-            response = httpConn.getResponseCode();
-            if (response == HttpURLConnection.HTTP_OK) {
-                in = httpConn.getInputStream();
-
-                BufferedInputStream bis = new BufferedInputStream(in, 3*2048);
-
-                ByteArrayBuffer baf = new ByteArrayBuffer(50);
-                int current = 0;
-                while ((current = bis.read()) != -1){
-                    baf.append((byte)current);
-                }
-
-                byte[] imageData = baf.toByteArray();
-                outputBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+            if (image == null){
+                Log.d("preview", "image is empty!");
+                return;
             }
-
-        } catch (Exception ex){
-            throw new IOException("Error Connecting");
+            else {
+                Log.d("preview", "Displaying image at " + destinationImagePath);
+            }
+            Bitmap temp = BitmapFactory.decodeFile(image.getAbsolutePath());
+            temp = Bitmap.createScaledBitmap(temp,1024, 768,true);
+            imageView.setImageBitmap(temp);
         }
-    }*/
+
+    }
 
 
     @Override
@@ -349,11 +358,13 @@ public class MainActivity extends AppCompatActivity {
         // Upload picture to the server and download colorized one
         upload.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
 
                 Log.d("upload", sourceImagePath);
 
                 new talkToServer().execute(preview);
+
+                //resetImageforView(destinationImagePath);
 
             }
         });
