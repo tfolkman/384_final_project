@@ -1,0 +1,13 @@
+Colorful Image Colorization
+CS 384G Final Project
+Tyler Folkman and Devesh Sahu
+
+Final report can be found here: http://104.236.112.86/report/
+
+Live Demo can be found here: http://104.236.112.86/
+
+Code can be found here: https://github.com/tfolkman/384_final_project
+
+If you could please let me know once it has been graded, I would appreciate it. I am currently paying for the server to host this, so I will shut it down once you are done grading.
+
+Thank you!
