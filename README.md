@@ -1,4 +1,5 @@
-To deploy the web application:
+## To deploy the web application:
+
 1. Install docker
 2. Go to deploy/
 3. Download weights and prototxt from http://richzhang.github.io/colorization/ and put in deploy/web
